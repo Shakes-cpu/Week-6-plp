@@ -1,28 +1,38 @@
 import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
 import dotenv from "dotenv";
-import bugRoutes from "./routes/bugRoutes.js";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import postRoutes from "./routes/postRoutes.js";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+// Connect to DB
+connectDB();
+
 // Routes
-app.use("/api/bugs", bugRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/posts", postRoutes);
 
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+// Health check for monitoring tools (IMPORTANT for deployment)
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
 
-// Start server
+// Root endpoint
+app.get("/", (req, res) => {
+  res.send("Backend API is running...");
+});
+
+// Deployment-ready settings
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
